@@ -1,0 +1,710 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard PBP - Universitas Muhammadiyah Cirebon</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@500;600;700;800&family=JetBrains+Mono:wght@600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0c0205; }
+        ::-webkit-scrollbar-thumb { background: #4c0519; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #881337; }
+
+        .saas-mesh {
+            background-color: #0f0507;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(136, 19, 55, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(159, 18, 57, 0.1) 0px, transparent 50%);
+        }
+
+        .saas-card {
+            background: rgba(20, 7, 11, 0.75);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(244, 63, 94, 0.15);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5), inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
+        }
+        
+        /* Menghilangkan latar putih logo UMC secara bersih */
+        .logo-umc-clean {
+            mix-blend-mode: luminosity;
+            filter: contrast(120%) brightness(105%);
+        }
+    </style>
+</head>
+<body class="saas-mesh font-sans text-slate-100 flex h-screen overflow-hidden antialiased">
+
+    <!-- MODAL LOGIN (Tampil jika belum login) -->
+    <div id="login-modal" class="fixed inset-0 bg-black/90 backdrop-blur-xl z-50 flex items-center justify-center p-4">
+        <div class="saas-card rounded-3xl max-w-md w-full p-8 shadow-2xl border border-rose-800/40 text-stone-100">
+            <div class="text-center mb-6">
+                <div class="w-16 h-16 mx-auto mb-3 flex items-center justify-center">
+                    <img src="logo-umc.png" alt="Logo UMC" class="w-full h-full object-contain drop-shadow">
+                </div>
+                <h2 class="text-xl font-bold text-white tracking-tight">Portal Akademik PBP</h2>
+                <p class="text-xs font-mono text-rose-400 mt-1">Universitas Muhammadiyah Cirebon</p>
+            </div>
+            <form onsubmit="prosesLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">NIM Mahasiswa</label>
+                    <input type="text" id="login-nim" value="240511108" required class="w-full px-4 py-3 bg-[#1a060a] border border-rose-900/40 rounded-xl text-xs text-white font-bold focus:ring-2 focus:ring-rose-600 outline-none">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">Nama Lengkap</label>
+                    <input type="text" id="login-nama" value="Lisya Ayu Mutiara Ramadhani" required class="w-full px-4 py-3 bg-[#1a060a] border border-rose-900/40 rounded-xl text-xs text-white font-bold focus:ring-2 focus:ring-rose-600 outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">Kelas</label>
+                        <input type="text" id="login-kelas" value="TI24D" required class="w-full px-4 py-3 bg-[#1a060a] border border-rose-900/40 rounded-xl text-xs text-white font-bold focus:ring-2 focus:ring-rose-600 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">Program Studi</label>
+                        <input type="text" id="login-prodi" value="S1 Teknik Informatika" required class="w-full px-4 py-3 bg-[#1a060a] border border-rose-900/40 rounded-xl text-xs text-white font-bold focus:ring-2 focus:ring-rose-600 outline-none">
+                    </div>
+                </div>
+                <button type="submit" class="w-full mt-2 bg-rose-800 hover:bg-rose-700 text-white py-3.5 rounded-xl text-xs font-bold transition duration-200 shadow-lg shadow-rose-950/50 border border-rose-600/40">Masuk ke Portal &rarr;</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SIDEBAR -->
+    <aside class="w-72 bg-[#090204] text-stone-300 flex flex-col h-full border-r border-rose-950/60 shadow-2xl hidden md:flex shrink-0">
+        <div class="p-6 border-b border-rose-950/40">
+            <div class="flex items-center gap-2.5">
+                <div class="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></div>
+                <h1 class="text-[11px] font-mono font-bold tracking-wider text-rose-400 uppercase">PBP • Engine v2.4</h1>
+            </div>
+            <p class="text-base font-bold text-white mt-1.5 tracking-tight">Portal Modul & LKP</p>
+        </div>
+
+        <div class="flex-1 overflow-y-auto p-5 space-y-6">
+            <!-- KARTU LOGO UMC (Tanpa Latar Putih) -->
+            <div class="bg-gradient-to-b from-rose-950/30 to-stone-900/20 rounded-2xl p-4 border border-rose-900/20 text-center shadow-inner">
+                <div class="w-14 h-14 mx-auto mb-3 flex items-center justify-center overflow-hidden">
+                    <img src="logo-umc.png" alt="Logo UMC" class="w-full h-full object-contain drop-shadow">
+                </div>
+                <h2 class="text-xs font-bold text-white tracking-wide">Univ. Muhammadiyah Cirebon</h2>
+                <div class="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-rose-900/40 border border-rose-700/30 text-[10px] font-mono text-rose-300 font-bold">
+                    <span id="sidebar-prodi">Teknik Informatika</span> • <span id="sidebar-kelas">TI24D</span>
+                </div>
+            </div>
+
+            <!-- MENU NAVIGATION -->
+            <div class="space-y-1.5">
+                <p class="text-[10px] font-mono font-bold text-stone-400 uppercase tracking-widest px-3 mb-2">MENU UTAMA</p>
+                <button onclick="bukaDashboardProfil()" class="w-full text-left px-3.5 py-2.5 rounded-xl hover:bg-rose-950/40 text-stone-200 hover:text-white font-bold text-xs transition duration-200 flex items-center gap-3 border border-transparent hover:border-rose-900/30">
+                    <span>✨ Ringkasan Profil</span>
+                </button>
+                <button onclick="bukaHalamanHome()" class="w-full text-left px-3.5 py-2.5 rounded-xl hover:bg-rose-950/40 text-stone-200 hover:text-white font-bold text-xs transition duration-200 flex items-center gap-3 border border-transparent hover:border-rose-900/30">
+                    <span>📚 Daftar Modul (Cards)</span>
+                </button>
+                <button onclick="bukaFolderTugas()" class="w-full text-left px-3.5 py-2.5 rounded-xl hover:bg-rose-950/40 text-stone-200 hover:text-white font-bold text-xs transition duration-200 flex items-center gap-3 border border-transparent hover:border-rose-900/30">
+                    <span>📁 Pengumpulan Tugas LKP</span>
+                </button>
+                <button onclick="bukaModalTambah()" class="w-full text-left px-3.5 py-2.5 rounded-xl bg-emerald-950/40 hover:bg-emerald-900/60 text-emerald-300 hover:text-emerald-200 font-bold text-xs transition duration-200 flex items-center gap-3 border border-emerald-800/40 shadow-sm">
+                    <span>+ Tambah Materi Baru</span>
+                </button>
+            </div>
+
+            <!-- FILTER KATEGORI -->
+            <div class="pt-2">
+                <p class="text-[10px] font-mono font-bold text-stone-400 uppercase tracking-widest px-3 mb-2">KATEGORI PLATFORM</p>
+                <div class="space-y-1 text-xs">
+                    <button onclick="filterKategori('Umum')" class="w-full text-left px-3.5 py-2 rounded-lg hover:bg-rose-950/30 text-stone-300 hover:text-white transition font-bold">Umum</button>
+                    <button onclick="filterKategori('Web')" class="w-full text-left px-3.5 py-2 rounded-lg hover:bg-rose-950/30 text-stone-300 hover:text-white transition font-bold">Web Platform</button>
+                    <button onclick="filterKategori('Desktop')" class="w-full text-left px-3.5 py-2 rounded-lg hover:bg-rose-950/30 text-stone-300 hover:text-white transition font-bold">Desktop Platform</button>
+                    <button onclick="filterKategori('Mobile')" class="w-full text-left px-3.5 py-2 rounded-lg hover:bg-rose-950/30 text-stone-300 hover:text-white transition font-bold">Mobile Platform</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-4 border-t border-rose-950/60 text-center text-[11px] font-mono text-stone-500 font-bold">
+            &copy; 2026 UMC • <span id="sidebar-kelas-foot">TI24D</span>
+        </div>
+    </aside>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <div class="flex-1 flex flex-col h-full overflow-hidden bg-[#0a0204]">
+        <header class="bg-[#0f0407]/80 backdrop-blur-xl border-b border-rose-950/60 px-8 py-4 flex justify-between items-center shadow-sm z-10">
+            <div>
+                <h2 id="header-title" class="text-base font-bold text-white tracking-tight">Ringkasan Profil & Pengenalan</h2>
+                <p class="text-[11px] font-mono text-rose-400 font-bold mt-0.5">Sistem Pembelajaran Multi-Platform Terintegrasi</p>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="w-72">
+                    <input type="text" id="search-input" placeholder="Cari judul modul atau topik..." class="w-full px-4 py-2 text-xs bg-rose-950/20 border border-rose-900/30 rounded-xl text-stone-100 font-bold placeholder-stone-500 focus:outline-none focus:ring-2 focus:ring-rose-600 transition duration-200">
+                </div>
+                <button onclick="logout()" class="px-3 py-2 bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 rounded-xl text-xs font-bold border border-rose-800/40 transition">Keluar</button>
+            </div>
+        </header>
+
+        <main class="flex-1 overflow-y-auto p-8">
+            <!-- VIEW 0: DASHBOARD PROFIL -->
+            <div id="view-dashboard" class="max-w-5xl mx-auto space-y-6">
+                <div class="bg-gradient-to-br from-rose-950/80 via-[#18050a] to-[#0c0306] text-white p-8 md:p-10 rounded-3xl shadow-2xl relative overflow-hidden border border-rose-800/30">
+                    <div class="absolute right-0 top-0 translate-x-12 -translate-y-12 w-80 h-80 bg-rose-600/10 rounded-full blur-3xl pointer-events-none"></div>
+                    <div class="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-8">
+                        <div>
+                            <span class="text-[10px] font-mono font-bold tracking-widest px-3 py-1 rounded-md bg-rose-900/60 text-rose-300 uppercase border border-rose-700/40">PORTAL MAHASISWA</span>
+                            <h1 id="welcome-name" class="text-2xl md:text-3xl font-bold mt-4 tracking-tight text-white leading-snug">Hello, Lisya Ayu Mutiara Ramadhani! ♡</h1>
+                            <p class="text-stone-200 text-xs md:text-sm mt-2 max-w-xl leading-relaxed font-semibold">
+                                Selamat datang di portal Modul & LKP Pemrograman Berbasis Platform. Ruang pembelajaran terstruktur untuk mengelola materi multi-platform secara profesional.
+                            </p>
+                            <div class="mt-6 flex flex-wrap gap-3">
+                                <button onclick="bukaHalamanHome()" class="bg-rose-700 hover:bg-rose-600 text-white font-bold px-5 py-2.5 rounded-xl text-xs transition duration-200 shadow-lg shadow-rose-950/50 border border-rose-500/30">
+                                    Jelajahi Modul &rarr;
+                                </button>
+                                <button onclick="bukaFolderTugas()" class="bg-stone-900/80 hover:bg-stone-900 text-stone-200 font-bold px-5 py-2.5 rounded-xl text-xs transition duration-200 border border-stone-700/50">
+                                    Folder Tugas LKP
+                                </button>
+                            </div>
+                        </div>
+                        <div class="bg-[#140609]/90 backdrop-blur-xl p-6 rounded-2xl border border-rose-900/40 text-center shadow-2xl min-w-[240px]">
+                            <div class="w-16 h-16 mx-auto rounded-xl flex items-center justify-center p-1 mb-3">
+                                <img src="logo-umc.png" alt="Logo UMC" class="w-full h-full object-contain drop-shadow">
+                            </div>
+                            <h3 class="font-bold text-white text-xs tracking-wide">Universitas Muhammadiyah Cirebon</h3>
+                            <span class="inline-block mt-2.5 px-3 py-1 rounded-md bg-rose-950/80 text-rose-300 text-[10px] font-mono border border-rose-800/40 font-bold">Portal Akademik PBP</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- BOTTOM DUAL CARDS -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-stretch">
+                    <!-- Data Akademik Card -->
+                    <div class="saas-card p-6 rounded-2xl flex flex-col justify-between">
+                        <div>
+                            <div class="flex items-center justify-between mb-4">
+                                <span class="text-[10px] font-mono font-bold text-rose-400 tracking-wider uppercase">IDENTITAS MAHASISWA</span>
+                                <button onclick="bukaModalEditProfil()" class="text-[10px] font-mono bg-rose-900/40 hover:bg-rose-900 text-rose-300 px-2.5 py-1 rounded-lg border border-rose-700/40 transition">Edit Profil</button>
+                            </div>
+                            <h4 class="font-bold text-white text-base tracking-tight mb-4">Data Akademik</h4>
+                            <ul class="text-xs space-y-3">
+                                <li class="flex flex-col border-b border-rose-950/60 pb-2">
+                                    <span class="text-stone-300 text-[10px] font-mono font-bold uppercase">Nama Lengkap</span> 
+                                    <strong id="profile-nama" class="text-white font-bold text-xs mt-0.5">Lisya Ayu Mutiara Ramadhani</strong>
+                                </li>
+                                <li class="flex justify-between items-center border-b border-rose-950/60 pb-2">
+                                    <span class="text-stone-300 text-[10px] font-mono font-bold uppercase">NIM</span> 
+                                    <strong id="profile-nim" class="text-rose-300 font-mono text-xs font-bold">240511108</strong>
+                                </li>
+                                <li class="flex justify-between items-center border-b border-rose-950/60 pb-2">
+                                    <span class="text-stone-300 text-[10px] font-mono font-bold uppercase">Kelas</span> 
+                                    <strong id="profile-kelas" class="text-rose-300 font-mono text-xs font-bold">TI24D</strong>
+                                </li>
+                                <li class="flex justify-between items-center border-b border-rose-950/60 pb-2">
+                                    <span class="text-stone-300 text-[10px] font-mono font-bold uppercase">Program Studi</span> 
+                                    <strong id="profile-prodi" class="text-rose-300 text-xs font-bold">S1 Teknik Informatika</strong>
+                                </li>
+                                <li class="flex flex-col pt-1">
+                                    <span class="text-stone-300 text-[10px] font-mono font-bold uppercase">Universitas</span> 
+                                    <strong class="text-white text-xs mt-0.5 font-bold">Univ. Muhammadiyah Cirebon</strong>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <!-- Tujuan Pembuatan Web Card -->
+                    <div class="md:col-span-2 saas-card p-6 rounded-2xl flex flex-col justify-between">
+                        <div>
+                            <span class="text-[10px] font-mono font-bold text-rose-400 tracking-wider uppercase">ARSITEKTUR & TUJUAN</span>
+                            <h4 class="font-bold text-white text-base tracking-tight mt-1 mb-3">Pusat Pembelajaran & Pengumpulan Tugas PBP</h4>
+                            <p class="text-stone-200 text-xs leading-relaxed font-semibold">
+                                Website ini dirancang khusus sebagai platform mandiri untuk mendukung mata kuliah <strong class="text-white font-bold">Pemrograman Berbasis Platform (PBP)</strong> di <strong class="text-white font-bold">Universitas Muhammadiyah Cirebon</strong>. 
+                            </p>
+                            <p class="text-stone-300 text-xs leading-relaxed font-bold mt-3">
+                                Tujuan utamanya adalah menyediakan dokumentasi modul terstruktur dari pertemuan 1 hingga 16 yang mencakup pengembangan sistem multi-platform (<span class="text-rose-300 font-mono font-bold">Web, Desktop, Mobile</span>), serta berfungsi sebagai pusat manajemen basis data terpusat untuk penyimpanan materi dan folder pengumpulan tugas (<span class="text-rose-300 font-mono font-bold">LKP</span>).
+                            </p>
+                        </div>
+                        <div class="mt-6 pt-4 border-t border-rose-950/60 flex items-center justify-between text-[11px] font-mono font-bold text-stone-400">
+                            <span>Status Sistem: Aktif (Connected to MySQL)</span>
+                            <span class="text-rose-400">Secure Node.js Backend</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- VIEW 1: GRID MODUL -->
+            <div id="view-home" class="hidden">
+                <div id="materi-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+            </div>
+
+            <!-- VIEW 2: DETAIL MATERI -->
+            <div id="view-detail" class="hidden max-w-4xl mx-auto saas-card p-8 rounded-2xl shadow-2xl border border-rose-900/30">
+                <button onclick="bukaHalamanHome()" class="text-xs font-mono font-bold text-rose-400 hover:text-rose-300 mb-6 inline-flex items-center gap-2 transition duration-200 bg-rose-950/30 px-4 py-2 rounded-xl border border-rose-900/40">
+                    &larr; Kembali ke Daftar Modul
+                </button>
+                <div id="detail-content"></div>
+            </div>
+
+            <!-- VIEW 3: FOLDER TUGAS (DENGAN UPLOAD FILE) -->
+            <div id="view-tugas" class="hidden max-w-4xl mx-auto space-y-6">
+                <div class="saas-card p-6 rounded-2xl shadow-2xl">
+                    <h3 class="text-sm font-bold text-white mb-4 flex items-center gap-2">
+                        <span class="w-2 h-2 rounded-full bg-rose-500"></span> Form Pengumpulan LKP / Tugas (Dilengkapi Upload Dokumen)
+                    </h3>
+                    <form onsubmit="kirimTugas(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4" enctype="multipart/form-data">
+                        <div>
+                            <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">PILIH PERTEMUAN</label>
+                            <select id="tugas-pertemuan" class="w-full px-3.5 py-2.5 border border-rose-900/40 rounded-xl text-xs outline-none focus:ring-2 focus:ring-rose-600 bg-[#120407] text-white font-bold">
+                                <option value="1">Pertemuan 1 - Setup Environment</option>
+                                <option value="2">Pertemuan 2 - HTML5 & CSS</option>
+                                <option value="3">Pertemuan 3 - Responsive Design</option>
+                                <option value="4">Pertemuan 4 - JavaScript & DOM</option>
+                                <option value="5">Pertemuan 5 - React Fundamentals</option>
+                                <option value="6">Pertemuan 6 - Express.js</option>
+                                <option value="9">Pertemuan 9 - JavaFX</option>
+                                <option value="10">Pertemuan 10 - Kalkulator JavaFX</option>
+                                <option value="11">Pertemuan 11 - Android Compose</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">NIM</label>
+                            <input type="text" id="tugas-nim" required class="w-full px-3.5 py-2.5 border border-rose-900/40 rounded-xl text-xs bg-rose-950/30 font-mono font-bold text-rose-300" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">NAMA LENGKAP</label>
+                            <input type="text" id="tugas-nama" required class="w-full px-3.5 py-2.5 border border-rose-900/40 rounded-xl text-xs bg-rose-950/30 font-bold text-white" readonly>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">UPLOAD DOKUMEN / FILE TUGAS</label>
+                            <input type="file" id="tugas-file" class="w-full px-3 py-2 border border-rose-900/40 rounded-xl text-xs bg-[#120407] text-stone-200 font-bold file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-rose-900 file:text-white hover:file:bg-rose-800">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">LINK REPOSITORY GITHUB / DEMO (Opsional)</label>
+                            <input type="url" id="tugas-link" placeholder="https://github.com/..." class="w-full px-3.5 py-2.5 border border-rose-900/40 rounded-xl text-xs outline-none focus:ring-2 focus:ring-rose-600 bg-[#120407] text-white font-bold placeholder-stone-500">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">CATATAN</label>
+                            <input type="text" id="tugas-catatan" placeholder="Catatan opsional pengerjaan tugas" class="w-full px-3.5 py-2.5 border border-rose-900/40 rounded-xl text-xs outline-none focus:ring-2 focus:ring-rose-600 bg-[#120407] text-white font-bold placeholder-stone-500">
+                        </div>
+                        <div class="md:col-span-2 pt-2">
+                            <button type="submit" class="w-full bg-rose-800 hover:bg-rose-700 text-white py-3 rounded-xl text-xs font-bold transition duration-200 shadow-lg shadow-rose-950/50 border border-rose-600/40">Kumpulkan Tugas Sekarang</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="saas-card p-6 rounded-2xl shadow-2xl">
+                    <h3 class="text-sm font-bold text-white mb-4">Daftar Tugas yang Telah Dikumpulkan</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-xs">
+                            <thead class="bg-rose-950/60 text-rose-300 font-mono text-[11px] uppercase tracking-wider font-bold">
+                                <tr>
+                                    <th class="p-3.5 rounded-l-xl font-bold">PERTEMUAN</th>
+                                    <th class="p-3.5 font-bold">MAHASISWA</th>
+                                    <th class="p-3.5 font-bold">DOKUMEN & LINK</th>
+                                    <th class="p-3.5 rounded-r-xl font-bold">WAKTU SUBMIT</th>
+                                </tr>
+                            </thead>
+                            <tbody id="tabel-tugas-body" class="divide-y divide-rose-950/60 text-stone-200 font-bold"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL EDIT PROFIL -->
+    <div id="modal-edit-profil" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-[#120407] border border-rose-900/40 rounded-2xl max-w-md w-full p-8 shadow-2xl text-stone-100">
+            <h2 class="text-base font-bold text-white mb-5">Edit Identitas Profil</h2>
+            <form onsubmit="simpanProfil(event)" class="space-y-4">
+                <div>
+                    <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">NIM</label>
+                    <input type="text" id="edit-nim" required class="w-full px-3 py-2 bg-[#1a060a] border border-rose-900/40 rounded-xl text-xs text-white font-bold">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">Nama Lengkap</label>
+                    <input type="text" id="edit-nama" required class="w-full px-3 py-2 bg-[#1a060a] border border-rose-900/40 rounded-xl text-xs text-white font-bold">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">Kelas</label>
+                    <input type="text" id="edit-kelas" required class="w-full px-3 py-2 bg-[#1a060a] border border-rose-900/40 rounded-xl text-xs text-white font-bold">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">Program Studi</label>
+                    <input type="text" id="edit-prodi" required class="w-full px-3 py-2 bg-[#1a060a] border border-rose-900/40 rounded-xl text-xs text-white font-bold">
+                </div>
+                <div class="flex justify-end gap-3 pt-3">
+                    <button type="button" onclick="tutupModalEditProfil()" class="px-5 py-2.5 bg-stone-900 hover:bg-stone-800 text-stone-200 rounded-xl text-xs font-bold border border-stone-800">Batal</button>
+                    <button type="submit" class="px-5 py-2.5 bg-rose-800 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-lg">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL TAMBAH MATERI -->
+    <div id="modal-materi" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-[#120407] border border-rose-900/40 rounded-2xl max-w-lg w-full p-8 shadow-2xl my-8 text-stone-100">
+            <h2 id="modal-title" class="text-base font-bold text-white mb-5">Tambah Materi Baru</h2>
+            <form id="form-materi" onsubmit="simpanMateri(event)" class="space-y-4">
+                <input type="hidden" id="materi-id">
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">PERTEMUAN KE-</label>
+                        <input type="number" id="input-pertemuan" required class="w-full px-3 py-2 bg-[#1a060a] border border-rose-900/40 rounded-xl text-xs text-white font-bold">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">KATEGORI</label>
+                        <select id="input-kategori" class="w-full px-3 py-2 bg-[#1a060a] border border-rose-900/40 rounded-xl text-xs text-white font-bold">
+                            <option value="Umum">Umum</option>
+                            <option value="Web">Web</option>
+                            <option value="Desktop">Desktop</option>
+                            <option value="Mobile">Mobile</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">JUDUL MATERI</label>
+                    <input type="text" id="input-judul" required class="w-full px-3 py-2 bg-[#1a060a] border border-rose-900/40 rounded-xl text-xs text-white font-bold">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">NAMA LKP</label>
+                    <input type="text" id="input-lkp" class="w-full px-3 py-2 bg-[#1a060a] border border-rose-900/40 rounded-xl text-xs text-white font-bold">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">TUJUAN</label>
+                    <textarea id="input-tujuan" rows="2" required class="w-full px-3 py-2 bg-[#1a060a] border border-rose-900/40 rounded-xl text-xs text-white font-bold"></textarea>
+                </div>
+                <div>
+                    <label class="block text-[11px] font-mono font-bold text-rose-300 mb-1.5 uppercase">ISI MATERI</label>
+                    <textarea id="input-isi" rows="4" required class="w-full px-3 py-2 bg-[#1a060a] border border-rose-900/40 rounded-xl text-xs text-white font-bold"></textarea>
+                </div>
+                <div class="flex justify-end gap-3 pt-3">
+                    <button type="button" onclick="tutupModal()" class="px-5 py-2.5 bg-stone-900 text-stone-200 rounded-xl text-xs font-bold border border-stone-800">Batal</button>
+                    <button type="submit" class="px-5 py-2.5 bg-rose-800 text-white rounded-xl text-xs font-bold shadow-lg">Simpan Materi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPT LOGIC -->
+    <script>
+        let semuaMateri = [];
+        let kategoriAktif = 'Semua';
+
+        // Cek Session Login
+        function cekLogin() {
+            let user = localStorage.getItem('pbp_user');
+            if (!user) {
+                document.getElementById('login-modal').classList.remove('hidden');
+            } else {
+                let data = JSON.parse(user);
+                terapkanUser(data);
+                document.getElementById('login-modal').classList.add('hidden');
+            }
+        }
+
+        function prosesLogin(e) {
+            e.preventDefault();
+            let data = {
+                nim: document.getElementById('login-nim').value,
+                nama: document.getElementById('login-nama').value,
+                kelas: document.getElementById('login-kelas').value,
+                prodi: document.getElementById('login-prodi').value
+            };
+            localStorage.setItem('pbp_user', JSON.stringify(data));
+            terapkanUser(data);
+            document.getElementById('login-modal').classList.add('hidden');
+            bukaDashboardProfil();
+        }
+
+        function terapkanUser(data) {
+            document.getElementById('welcome-name').textContent = `Hello, ${data.nama}! ♡`;
+            document.getElementById('profile-nama').textContent = data.nama;
+            document.getElementById('profile-nim').textContent = data.nim;
+            document.getElementById('profile-kelas').textContent = data.kelas;
+            document.getElementById('profile-prodi').textContent = data.prodi;
+            document.getElementById('sidebar-kelas').textContent = data.kelas;
+            document.getElementById('sidebar-prodi').textContent = data.prodi;
+            document.getElementById('sidebar-kelas-foot').textContent = data.kelas;
+            
+            // Auto fill form tugas
+            document.getElementById('tugas-nim').value = data.nim;
+            document.getElementById('tugas-nama').value = data.nama;
+        }
+
+        function logout() {
+            localStorage.removeItem('pbp_user');
+            location.reload();
+        }
+
+        function bukaModalEditProfil() {
+            let user = JSON.parse(localStorage.getItem('pbp_user'));
+            document.getElementById('edit-nim').value = user.nim;
+            document.getElementById('edit-nama').value = user.nama;
+            document.getElementById('edit-kelas').value = user.kelas;
+            document.getElementById('edit-prodi').value = user.prodi;
+            document.getElementById('modal-edit-profil').classList.remove('hidden');
+        }
+
+        function tutupModalEditProfil() {
+            document.getElementById('modal-edit-profil').classList.add('hidden');
+        }
+
+        function simpanProfil(e) {
+            e.preventDefault();
+            let data = {
+                nim: document.getElementById('edit-nim').value,
+                nama: document.getElementById('edit-nama').value,
+                kelas: document.getElementById('edit-kelas').value,
+                prodi: document.getElementById('edit-prodi').value
+            };
+            localStorage.setItem('pbp_user', JSON.stringify(data));
+            terapkanUser(data);
+            tutupModalEditProfil();
+            alert('Identitas profil berhasil diperbarui!');
+        }
+
+        async function ambilData(kategori = 'Semua') {
+            kategoriAktif = kategori;
+            try {
+                const res = await fetch(`/api/materi?kategori=${kategori}`);
+                const result = await res.json();
+                if (result.sukses) {
+                    semuaMateri = result.data;
+                    tampilkanGrid(semuaMateri);
+                }
+            } catch (err) { 
+                console.error('Gagal mengambil data:', err); 
+            }
+        }
+
+        function tampilkanGrid(data) {
+            const grid = document.getElementById('materi-grid');
+            grid.innerHTML = '';
+            if (data.length === 0) {
+                grid.innerHTML = `<p class="col-span-full text-center text-stone-400 py-12 text-xs font-mono font-bold">Tidak ada materi ditemukan di database.</p>`;
+                return;
+            }
+
+            data.forEach(item => {
+                let badgeColor = 'bg-stone-900/60 text-stone-200 border-stone-800';
+                if (item.kategori === 'Web') badgeColor = 'bg-emerald-950/40 text-emerald-300 border-emerald-800/40';
+                if (item.kategori === 'Desktop') badgeColor = 'bg-amber-950/40 text-amber-300 border-amber-800/40';
+                if (item.kategori === 'Mobile') badgeColor = 'bg-purple-950/40 text-purple-300 border-purple-800/40';
+                if (item.kategori === 'Umum') badgeColor = 'bg-rose-950/40 text-rose-300 border-rose-800/40';
+
+                const card = document.createElement('div');
+                card.className = "saas-card rounded-2xl p-6 flex flex-col justify-between cursor-pointer group hover:border-rose-700/40 hover:-translate-y-1 transition-all duration-300";
+                card.onclick = () => bukaHalamanDetail(item);
+
+                card.innerHTML = `
+                    <div>
+                        <div class="flex justify-between items-center mb-4">
+                            <span class="text-[10px] font-mono font-bold px-2.5 py-1 rounded-md bg-stone-900 text-stone-200 border border-stone-800">Pertemuan ${item.pertemuan}</span>
+                            <span class="text-[10px] font-mono font-bold px-2.5 py-1 rounded-full border ${badgeColor}">${item.kategori}</span>
+                        </div>
+                        <h3 class="text-sm font-bold text-white mb-2 group-hover:text-rose-400 transition duration-200 leading-snug">${item.judul}</h3>
+                        <p class="text-[11px] font-mono text-rose-400 font-bold mb-3">${item.lkp || ''}</p>
+                        <p class="text-stone-300 text-xs line-clamp-3 leading-relaxed font-bold">${item.isi}</p>
+                    </div>
+                    <div class="mt-6 pt-3 border-t border-rose-950/60 text-xs font-bold text-rose-400 flex items-center justify-between group-hover:text-rose-300 transition">
+                        <span>Baca Selengkapnya</span>
+                        <span class="transform group-hover:translate-x-1 transition duration-200">&rarr;</span>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function bukaDashboardProfil() {
+            document.getElementById('view-home').classList.add('hidden');
+            document.getElementById('view-detail').classList.add('hidden');
+            document.getElementById('view-tugas').classList.add('hidden');
+            document.getElementById('view-dashboard').classList.remove('hidden');
+            document.getElementById('header-title').textContent = 'Ringkasan Profil & Pengenalan';
+        }
+
+        function bukaHalamanHome() {
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-detail').classList.add('hidden');
+            document.getElementById('view-tugas').classList.add('hidden');
+            document.getElementById('view-home').classList.remove('hidden');
+            document.getElementById('header-title').textContent = 'Daftar Modul PBP';
+            ambilData(kategoriAktif);
+        }
+
+        function bukaHalamanDetail(item) {
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-home').classList.add('hidden');
+            document.getElementById('view-tugas').classList.add('hidden');
+            document.getElementById('view-detail').classList.remove('hidden');
+            document.getElementById('header-title').textContent = `Detail Pertemuan ${item.pertemuan}`;
+
+            const detail = document.getElementById('detail-content');
+            detail.innerHTML = `
+                <div class="flex justify-between items-start mb-6">
+                    <div>
+                        <span class="text-[10px] font-mono font-bold px-3 py-1 rounded-md bg-rose-950/60 text-rose-300 border border-rose-800/40">Pertemuan ${item.pertemuan} • ${item.kategori}</span>
+                        <h1 class="text-xl font-bold text-white mt-3 tracking-tight">${item.judul}</h1>
+                        <p class="text-xs font-mono text-rose-400 font-bold mt-1">${item.lkp || ''}</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <button onclick='bukaModalEdit(${JSON.stringify(item)})' class="px-3.5 py-2 bg-amber-950/40 text-amber-300 hover:bg-amber-900/60 rounded-xl text-xs font-bold transition border border-amber-800/40">Edit</button>
+                        <button onclick="hapusMateri(${item.id})" class="px-3.5 py-2 bg-rose-950/40 text-rose-300 hover:bg-rose-900/60 rounded-xl text-xs font-bold transition border border-rose-800/40">Hapus</button>
+                    </div>
+                </div>
+                <hr class="my-6 border-rose-950/60">
+                <div class="space-y-6">
+                    <div>
+                        <h3 class="text-[10px] font-mono font-bold uppercase tracking-widest text-rose-400 mb-2">TUJUAN PEMBELAJARAN</h3>
+                        <p class="text-xs text-stone-200 font-bold whitespace-pre-line leading-relaxed bg-[#140609]/60 p-4 rounded-xl border border-rose-950/80">${item.tujuan}</p>
+                    </div>
+                    <div>
+                        <h3 class="text-[10px] font-mono font-bold uppercase tracking-widest text-rose-400 mb-2">MATERI & PEMBAHASAN LENGKAP</h3>
+                        <p class="text-xs text-stone-200 font-bold whitespace-pre-line leading-relaxed bg-[#140609]/60 p-4 rounded-xl border border-rose-950/80">${item.isi}</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        function bukaFolderTugas() {
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-home').classList.add('hidden');
+            document.getElementById('view-detail').classList.add('hidden');
+            document.getElementById('view-tugas').classList.remove('hidden');
+            document.getElementById('header-title').textContent = 'Folder Pengumpulan Tugas Mahasiswa';
+            ambilDataTugas();
+        }
+
+        function filterKategori(kategori) {
+            document.getElementById('view-dashboard').classList.add('hidden');
+            document.getElementById('view-detail').classList.add('hidden');
+            document.getElementById('view-tugas').classList.add('hidden');
+            document.getElementById('view-home').classList.remove('hidden');
+            ambilData(kategori);
+        }
+
+        document.getElementById('search-input').addEventListener('input', (e) => {
+            const keyword = e.target.value.toLowerCase();
+            const filtered = semuaMateri.filter(item => item.judul.toLowerCase().includes(keyword));
+            tampilkanGrid(filtered);
+        });
+
+        async function kirimTugas(e) {
+            e.preventDefault();
+            const formData = new FormData();
+            formData.append('pertemuan', document.getElementById('tugas-pertemuan').value);
+            formData.append('nim', document.getElementById('tugas-nim').value);
+            formData.append('nama_mahasiswa', document.getElementById('tugas-nama').value);
+            formData.append('link_tugas', document.getElementById('tugas-link').value);
+            formData.append('catatan', document.getElementById('tugas-catatan').value);
+            
+            const fileInput = document.getElementById('tugas-file');
+            if (fileInput.files[0]) {
+                formData.append('file_tugas', fileInput.files[0]);
+            }
+
+            const res = await fetch('/api/tugas', {
+                method: 'POST',
+                body: formData
+            });
+            const result = await res.json();
+            if (result.sukses) {
+                alert('Tugas beserta dokumen berhasil dikumpulkan!');
+                document.getElementById('tugas-link').value = '';
+                document.getElementById('tugas-catatan').value = '';
+                document.getElementById('tugas-file').value = '';
+                ambilDataTugas();
+            }
+        }
+
+        async function ambilDataTugas() {
+            const res = await fetch('/api/tugas');
+            const result = await res.json();
+            const tbody = document.getElementById('tabel-tugas-body');
+            tbody.innerHTML = '';
+            if (result.sukses && result.data.length > 0) {
+                result.data.forEach(t => {
+                    let fileLinkHtml = t.file_path ? `<a href="${t.file_path}" target="_blank" class="text-emerald-400 font-mono font-bold underline block hover:text-emerald-300">📄 Download Dokumen</a>` : '';
+                    let urlLinkHtml = t.link_tugas ? `<a href="${t.link_tugas}" target="_blank" class="text-rose-300 font-mono font-bold underline truncate block max-w-xs hover:text-rose-200">${t.link_tugas}</a>` : '';
+
+                    tbody.innerHTML += `
+                        <tr class="hover:bg-rose-950/20 transition">
+                            <td class="p-3.5 font-bold text-white">Pertemuan ${t.pertemuan}</td>
+                            <td class="p-3.5"><b class="text-stone-100 font-bold">${t.nama_mahasiswa}</b><br><span class="text-[10px] font-mono text-rose-300 font-bold">${t.nim}</span></td>
+                            <td class="p-3.5 space-y-1">${fileLinkHtml} ${urlLinkHtml}</td>
+                            <td class="p-3.5 text-[11px] font-mono text-stone-300 font-bold">${new Date(t.submitted_at).toLocaleString()}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-stone-400 font-mono text-xs font-bold">Belum ada tugas dikumpulkan.</td></tr>`;
+            }
+        }
+
+        function bukaModalTambah() {
+            document.getElementById('modal-title').textContent = 'Tambah Materi Baru';
+            document.getElementById('form-materi').reset();
+            document.getElementById('materi-id').value = '';
+            document.getElementById('modal-materi').classList.remove('hidden');
+        }
+
+        function bukaModalEdit(item) {
+            document.getElementById('modal-title').textContent = 'Edit Materi';
+            document.getElementById('materi-id').value = item.id;
+            document.getElementById('input-pertemuan').value = item.pertemuan;
+            document.getElementById('input-kategori').value = item.kategori;
+            document.getElementById('input-judul').value = item.judul;
+            document.getElementById('input-lkp').value = item.lkp;
+            document.getElementById('input-tujuan').value = item.tujuan;
+            document.getElementById('input-isi').value = item.isi;
+            document.getElementById('modal-materi').classList.remove('hidden');
+        }
+
+        function tutupModal() { 
+            document.getElementById('modal-materi').classList.add('hidden'); 
+        }
+
+        async function simpanMateri(e) {
+            e.preventDefault();
+            const id = document.getElementById('materi-id').value;
+            const data = {
+                pertemuan: document.getElementById('input-pertemuan').value,
+                kategori: document.getElementById('input-kategori').value,
+                judul: document.getElementById('input-judul').value,
+                lkp: document.getElementById('input-lkp').value,
+                tujuan: document.getElementById('input-tujuan').value,
+                isi: document.getElementById('input-isi').value
+            };
+            const url = id ? `/api/materi/${id}` : '/api/materi';
+            const method = id ? 'PUT' : 'POST';
+            const res = await fetch(url, { method, headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data) });
+            const result = await res.json();
+            if (result.sukses) { 
+                tutupModal(); 
+                bukaHalamanHome(); 
+            }
+        }
+
+        async function hapusMateri(id) {
+            if (confirm('Apakah Anda yakin ingin menghapus materi ini?')) {
+                const res = await fetch(`/api/materi/${id}`, { method: 'DELETE' });
+                const result = await res.json();
+                if (result.sukses) bukaHalamanHome();
+            }
+        }
+
+        // Inisialisasi awal
+        cekLogin();
+        ambilData();
+    </script>
+</body>
+</html>
